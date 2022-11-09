@@ -73,12 +73,19 @@ world = {};
 function drawCircle(context,entity) {
     with(context) {
         beginPath();              
-        lineWidth = 3;
+        lineWidth = 10;
         var x = entity["x"];
         var y = entity["y"];
         //moveTo(x,y);
+
+        // colors
+        var random_red = ((x + y) * 1337) % 255;
+        var random_green = x % 255;
+        var random_blue = y % 255;
+        var rgb_color = `rgb(${random_red}, ${random_green}, ${random_blue})`;
+
         fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
+        strokeStyle = rgb_color; //fillStyle;
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
         stroke();                                
     }renderFrame
@@ -89,7 +96,7 @@ function prepEntity(entity) {
         entity["colour"] = "#FF0000";
     }
     if (!entity["radius"]) {
-        entity["radius"] = 50;
+        entity["radius"] = 20;
     }
     return entity;
 }
@@ -97,7 +104,7 @@ function prepEntity(entity) {
 function clearFrame() {
     with(context) {
 	moveTo(0,0);
-	fillStyle = "#001"; //#000
+	fillStyle = "#FFE"; //#000 pret
 	fillRect(0,0,W,H);
     }
 
@@ -269,16 +276,15 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'blue', 'radius': 10});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'red', 'radius': 10});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+    addEntityWithoutName({'x':x,'y':y,'colour':'black', 'radius': 5});
 });
 
 
@@ -311,7 +317,7 @@ function update() {
 }
 
 // 30 frames per second
-let fps = 5 // set frames per second
+let fps = 60 // the human eye can only see 60 fps /s
 setInterval( update, 1000/fps);
 
     </script>
