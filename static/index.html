@@ -1,12 +1,12 @@
 <!DOCTYPE HTML>
 <html> 
   <head> 
-    <title>AJAX Assignment</title> 
+    <title>CMPUT404 - A4 - AJAX Assignment</title> 
     <meta charset="utf-8" /> 
     <meta content='width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;' name='viewport' />
     <meta name="viewport" content="width=device-width" />
     <meta name="license" content="
-        Copyright 2013 Abram Hindle
+        Copyright 2022 Johnson Zhao
         
         Licensed under the Apache License, Version 2.0 (the "License");
         you may not use this file except in compliance with the License.
@@ -34,12 +34,18 @@ var H = canvas.height = window.innerHeight-50;
 
 function sendJSONXMLHTTPRequest(url, objects, callback) {
     var xhr = new XMLHttpRequest();
+
+    // recieving data
     xhr.onreadystatechange = function () {
         if (xhr.readyState==4) {
             try {
                 if (xhr.status==200) {
                     //XXX: parse some JSON from the request!
                     //XXX: Pass the data to the callback!
+                    console.log(`Response from ${xhr.responseURL}`);
+                    var xhr_data = JSON.parse(xhr.response);
+                    console.log(`xhr data:\n ${xhr_data}`);
+                    callback(xhr_data);
                 }
             } 
             catch(e) {
@@ -47,9 +53,17 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             }
         }
     };
+
     //XXX: POST to a URL
     //XXX: set the mimetype and the accept headers!
     // Remember to use application/json !
+    // https://stackoverflow.com/questions/9713058/send-post-data-using-xmlhttprequest
+    // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Accept', 'application/json');
+    var str_obj = JSON.stringify(objects);
+    xhr.send(str_obj);
 }
 
 
@@ -67,7 +81,7 @@ function drawCircle(context,entity) {
         strokeStyle = fillStyle;
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
         stroke();                                
-    }
+    }renderFrame
 }
 
 function prepEntity(entity) {
@@ -83,7 +97,7 @@ function prepEntity(entity) {
 function clearFrame() {
     with(context) {
 	moveTo(0,0);
-	fillStyle = "#000";
+	fillStyle = "#001"; //#000
 	fillRect(0,0,W,H);
     }
 
@@ -137,8 +151,16 @@ function getPosition(e) {
 function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
-    //XXX: Send a XHTML Request that updates the entity you just  modified!
 
+    //XXX: Send a XHTML Request that updates the entity you just  modified!
+    var post_url = '/entity/' + entity; // relative URL
+    console.log(`post_url: ${post_url}`)
+    var post_data = world[entity];
+
+    sendJSONXMLHTTPRequest(post_url, data, (callback_data) => {
+        world[entity] = callback_data;
+        }
+    );
 }
 
 var counter = 0;
@@ -260,15 +282,37 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 });
 
 
-function update() {
+function update() {    
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
+    // world = {} as json/dict
+
+    /* using the provided sendJSONXMLHTTPRequest instead of promises
+    var req = new Request('/world');
+    console.log(`Request url: ${req.url}`);
+    // get world with fetch
+    fetch(req).then((response) => {
+        if (response.status === 200) {
+            world = response.json();
+            console.log(`World:\n ${world}`);
+        } else {
+            alert('you goofed');
+        }
+    });
+    */
+
+    var get_url = '/world';
+    var get_data = null;
+    sendJSONXMLHTTPRequest(get_url, get_data, (callback_data) => {
+        world = callback_data;
+        }
+    )
+
     drawFrame();
 }
 
 // 30 frames per second
-setInterval( update, 1000/30.0);
-
-
+let fps = 5 // set frames per second
+setInterval( update, 1000/fps);
 
     </script>
 </body>
